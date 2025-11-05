@@ -20,7 +20,7 @@ app.use(express.json());
 
 // healthcheck
 app.get('/', (req, res) => {
-  res.json({ ok: true, service: 'drone-api', allowlist: ALLOW });
+  res.json({ ok: true, service: 'drone-api'});
 });
 
 // routes
