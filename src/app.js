@@ -9,45 +9,42 @@ import logsRoute from './routes/logs.route.js';
 
 const app = express();
 
-/** ===== CORS setup (แก้จุดสำคัญ) ===== */
+/** ===== CORS: allowlist + vercel preview/prod ===== */
 const allowlist = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://webappassignmentfrontend.vercel.app', // ไม่มี slash ท้าย
 ];
-// อนุญาตโดเมน Vercel ทุก preview/prod ของโปรเจกต์นี้
 const vercelHostRegex = /\.vercel\.app$/;
 
 app.use(cors({
   origin(origin, cb) {
-    // อนุญาตเครื่องมือทดสอบ/healthcheck ที่ไม่มี origin (เช่น curl, Postman)
+    // อนุญาตเครื่องมือที่ไม่มี Origin (curl/Postman/healthcheck)
     if (!origin) return cb(null, true);
 
     let allowed = false;
     try {
-      const url = new URL(origin);
-      // อยู่ใน allowlist แบบตรงตัว หรือ โฮสต์ลงท้ายด้วย .vercel.app
-      allowed = allowlist.includes(origin) || vercelHostRegex.test(url.host);
+      const u = new URL(origin);
+      allowed = allowlist.includes(origin) || vercelHostRegex.test(u.host);
     } catch {
-      // ถ้า origin แปลก ๆ
       allowed = false;
     }
 
-    if (allowed) return cb(null, true);
-    return cb(new Error(`Not allowed by CORS: ${origin}`));
+    return allowed ? cb(null, true) : cb(new Error(`Not allowed by CORS: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false, // ถ้าอนาคตจะใช้ cookie ให้เปลี่ยนเป็น true + ตั้ง SameSite=None; Secure ฝั่ง cookie
+  credentials: false, // ถ้าจะใช้ cookie ค่อยเปลี่ยนเป็น true + ตั้งค่า cookie ให้ถูก
 }));
 
-// รองรับ preflight ทุกเส้นทาง
-app.options('*', cors());
+// ถ้าต้องการคง preflight handler ไว้ ให้ใช้ pattern ใหม่ แทน '*'
+// (หรือลบบรรทัดนี้ทิ้งก็ได้ เพราะ middleware cors() จัดการ preflight ให้อยู่แล้ว)
+app.options('/(.*)', cors());
 
-/** ===== Security & body ===== */
+/** ===== Security & parsing ===== */
 app.use(helmet({
-  crossOriginResourcePolicy: false,   // ให้โหลด resource ข้ามโดเมนได้
-  contentSecurityPolicy: false        // ปิด CSP ถ้า frontend host อื่น (ปรับตามต้องการ)
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false, // ปรับตามต้องการ ถ้าเปิดจริงต้อง whitelist โดเมน static ให้ครบ
 }));
 app.use(express.json());
 
