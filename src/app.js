@@ -11,7 +11,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173','https://webappassignmentfrontend.vercel.app'],
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173','https://webappassignmentfrontend.vercel.app/','https://webappassignmentbackend.onrender.com/configs/3001'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: false
