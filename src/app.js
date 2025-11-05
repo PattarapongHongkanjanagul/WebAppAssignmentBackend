@@ -17,12 +17,26 @@ const ALLOW = (process.env.FRONTEND_ORIGINS || 'http://localhost:5173')
 
 const corsOptions = {
   origin(origin, cb) {
-    if (!origin) return cb(null, true);
+    if (!origin) return cb(null, true);                 // อนุญาต no-origin (curl/healthcheck)
+    if (origin === 'http://localhost:5173') return cb(null, true);
+
+    // อนุญาตทุกโดเมนของ Vercel (รวม preview)
+    try {
+      const { hostname } = new URL(origin);
+      if (hostname.endsWith('.vercel.app')) return cb(null, true);
+      // ถ้าใช้ Cloudflare Pages ด้วย:
+      // if (hostname.endsWith('.pages.dev')) return cb(null, true);
+    } catch {}
+
+    // ตกมาที่ allowlist จาก ENV (สำหรับโดเมน custom อื่น ๆ)
+    const ALLOW = (process.env.FRONTEND_ORIGINS || '')
+      .split(',').map(s => s.trim()).filter(Boolean);
     if (ALLOW.includes(origin)) return cb(null, true);
+
     return cb(new Error(`Not allowed by CORS: ${origin}`));
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET','POST','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
   maxAge: 86400,
 };
 
