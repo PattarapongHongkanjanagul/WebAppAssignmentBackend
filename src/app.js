@@ -10,11 +10,6 @@ import logsRoute from './routes/logs.route.js';
 
 const app = express();
 
-const ALLOW = (process.env.FRONTEND_ORIGINS || 'http://localhost:5173')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
-
 
 app.use(helmet({
   crossOriginResourcePolicy: false,
